@@ -7,6 +7,7 @@ import json
 import requests
 from bs4 import BeautifulSoup
 import pandas as pd
+import time
 
 computerid=[]
 computeridandname ={} #存储笔记本的id
@@ -53,20 +54,18 @@ def getshopcontentpagenumber(url):
 #获取评论内容
 def getshopcontent():
     for i in computerid:
-        url = "https://c.lenovo.com.cn/comment/frontV2/commentDetail?jsonpcallback=jQuery1111024931916775337792_1559118241387&gcodes=1004465%2C1004466%2C1004467&currPage=1&productId="+str(i)+"&level=0&lables=&only=2&_=1559118241392"
+        url = "https://c.lenovo.com.cn/comment/frontV2/commentDetail?jsonpcallback=jQuery1111024931916775337792_1559118241387&gcodes="+str(i)+"&currPage=2&productId="+str(i)+"&level=0&lables=&only=2&_=1559118241392"
         contentpagenumber = getshopcontentpagenumber(url)  
         count = 0
         computernametext = computeridandname[str(i)]
+        print(contentpagenumber)
         for page in range(contentpagenumber):
-            url1 = "https://c.lenovo.com.cn/comment/frontV2/commentDetail?jsonpcallback=jQuery1111024931916775337792_1559118241387&gcodes=1004465%2C1004466%2C1004467&currPage="+str(page+1)+"&productId="+str(i)+"&level=0&lables=&only=2&_=1559118241392"
+            url1 = "https://c.lenovo.com.cn/comment/frontV2/commentDetail?jsonpcallback=jQuery1111024931916775337792_1559118241387&gcodes="+str(i)+"&currPage="+str(page+1)+"&productId="+str(i)+"&level=0&lables=&only=2&_=1559118241392"
             indexhtml = requests.get(url1)
             indexdata = BeautifulSoup(indexhtml.text,'lxml')
             print(url1)
             print(computernametext)
             print()
-            count = count+1
-            if count>=10:#只获取评论内容的前10页
-                break
             contenttext = str(indexdata.select_one("p").text.lstrip('jQuery1111024931916775337792_1559118241387(').rstrip(');'))
             contentjson = json.loads(contenttext) 
             number2 = len(contentjson['data']['comment'])-1           
@@ -75,6 +74,7 @@ def getshopcontent():
                 computercontentTime.append(contentjson['data']['comment'][jsontext]['etime'])
                 computercontentuser.append(contentjson['data']['comment'][jsontext]['euser'])
                 computernametest.append(computernametext)
+            time.sleep(1)
         writeinfile()
         computercontent.clear
         computercontentTime.clear
@@ -94,10 +94,9 @@ def writeinfile():
     pd.set_option('display.width', 100000)
     Dataframetext = pd.DataFrame(computerinformation)
     print(Dataframetext)
-    Dataframetext.to_excel('数据8.xlsx')
+    Dataframetext.to_excel('数据20.xlsx')
     
 #主函数 
 pagenumber = getpagenumber()
 computeridandname = getshopId(pagenumber)
 getshopcontent()
-
