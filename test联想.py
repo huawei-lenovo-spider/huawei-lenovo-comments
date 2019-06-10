@@ -1,5 +1,5 @@
 '''
-Created on 2019年5月29日
+Created on 2019年6月7日
 
 @author: 任仕伟
 '''
@@ -9,14 +9,13 @@ from bs4 import BeautifulSoup
 import pandas as pd
 import time
 
-computerid=[]
-computeridandname ={} #存储笔记本的id
-computername = []#存储笔记本的型号
-computernametest =[]#存储笔记本的型号
-computercontent = []#评论内容
-computercontentTime = []#评论时间
-computercontentuser = []#评论用户
-computerinformation = {}#联想电脑信息
+computerId=[]#存储笔记本的id
+computerName = []#存储笔记本的型号
+computerModel =[]#存储笔记本的型号
+commentInformation = []#评论内容
+commentOnStars = []#评论星级
+userName = []#评论用户
+computerInformation = {}#联想电脑信息
 #获得商品的页码数
 def getpagenumber():
     url = 'http://s.lenovo.com.cn/search/?innerKey=&page=1&key=%E7%AC%94%E8%AE%B0%E6%9C%AC'
@@ -39,9 +38,10 @@ def getshopId(pagenumber):
         for information in indexdata:
             product_id = information['data-id']
             product_name = str(information['data-title']).replace("<em>笔记本</em>","")
-            computerid.append(product_id)
-            computername.append(product_name)
-    computeridandname=dict(zip(computerid,computername))
+            computerId.append(product_id)
+            computerName.append(product_name)
+    computeridandname=dict(zip(computerId,computerName))
+    computeridandname=dict(zip(computerId,computerName))
     return computeridandname
 #获取评论内容的页码
 def getshopcontentpagenumber(url):
@@ -53,7 +53,7 @@ def getshopcontentpagenumber(url):
     return contentjson['data']['comment'][jsonlength-1]['totalPage']
 #获取评论内容
 def getshopcontent():
-    for i in computerid:
+    for i in computerId:
         url = "https://c.lenovo.com.cn/comment/frontV2/commentDetail?jsonpcallback=jQuery1111024931916775337792_1559118241387&gcodes="+str(i)+"&currPage=2&productId="+str(i)+"&level=0&lables=&only=2&_=1559118241392"
         contentpagenumber = getshopcontentpagenumber(url)  
         count = 0
@@ -70,31 +70,31 @@ def getshopcontent():
             contentjson = json.loads(contenttext) 
             number2 = len(contentjson['data']['comment'])-1           
             for jsontext in range(1,number2):
-                computercontent.append(contentjson['data']['comment'][jsontext]['edesc'])
-                computercontentTime.append(contentjson['data']['comment'][jsontext]['etime'])
-                computercontentuser.append(contentjson['data']['comment'][jsontext]['euser'])
-                computernametest.append(computernametext)
-            time.sleep(1)
+                commentInformation.append(contentjson['data']['comment'][jsontext]['edesc'])
+                commentOnStars.append(contentjson['data']['comment'][jsontext]['escore'])
+                userName.append(contentjson['data']['comment'][jsontext]['euser'])
+                computerModel.append(computernametext)
         writeinfile()
-        computercontent.clear
-        computercontentTime.clear
-        computercontentuser.clear
-        computernametest.clear
-        computerinformation.clear
+        commentInformation.clear
+        commentOnStars.clear
+        userName.clear
+        computerModel.clear
+        computerInformation.clear
 
 #将文件写入excel文件中        
 def writeinfile():
-    computerinformation.setdefault('评论名',computercontentuser)
-    computerinformation.setdefault('评论时间',computercontentTime)
-    computerinformation.setdefault('评论内容',computercontent)
-    computerinformation.setdefault('评论商品',computernametest)
+    computerInformation.setdefault('评论名',userName)
+    computerInformation.setdefault('评论商品', computerModel)
+    computerInformation.setdefault('评论星级',commentOnStars)
+    computerInformation.setdefault('评论内容',commentInformation)
+
     pd.set_option('display.max_columns', None)#显示所有列
     pd.set_option('display.max_rows', None)#显示所有行
     pd.set_option('max_colwidth',100000)#设置value的显示长度为100000，默认为50
     pd.set_option('display.width', 100000)
-    Dataframetext = pd.DataFrame(computerinformation)
+    Dataframetext = pd.DataFrame(computerInformation)
     print(Dataframetext)
-    Dataframetext.to_excel('数据20.xlsx')
+    Dataframetext.to_excel('联想评论.xlsx')
     
 #主函数 
 pagenumber = getpagenumber()
